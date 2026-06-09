@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Asset Exporter</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 20px;
+        font-family:
+          "Inter",
+          -apple-system,
+          BlinkMacSystemFont,
+          sans-serif;
+        font-size: 13px;
+        color: #1a1a1a;
+        background: #fff;
+      }
+
+      h2 {
+        margin: 0 0 4px;
+        font-size: 15px;
+        font-weight: 600;
+      }
+
+      p.desc {
+        margin: 0 0 14px;
+        color: #777;
+        font-size: 11px;
+        line-height: 1.5;
+      }
+
+      #status-box {
+        min-height: 32px;
+        padding: 7px 12px;
+        border-radius: 6px;
+        background: #f5f5f5;
+        color: #444;
+        font-size: 12px;
+        margin-bottom: 12px;
+        display: none;
+      }
+      #status-box.visible {
+        display: block;
+      }
+      #status-box.error {
+        background: #fff0f0;
+        color: #c00;
+      }
+      #status-box.success {
+        background: #f0fff4;
+        color: #166534;
+      }
+
+      .progress-bar-wrap {
+        height: 3px;
+        background: #e5e5e5;
+        border-radius: 2px;
+        margin-bottom: 14px;
+        overflow: hidden;
+        display: none;
+      }
+      .progress-bar-wrap.visible {
+        display: block;
+      }
+      .progress-bar {
+        height: 100%;
+        background: #18a0fb;
+        border-radius: 2px;
+        width: 0%;
+        transition: width 0.25s ease;
+      }
+
+      /* ── Task grid ── */
+      .section-label {
+        font-size: 10px;
+        font-weight: 600;
+        color: #999;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 8px;
+      }
+
+      .task-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      .btn-task {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 10px 12px;
+        background: #f7f7f7;
+        color: #1a1a1a;
+        border: 1.5px solid #e8e8e8;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.3;
+        cursor: pointer;
+        transition:
+          background 0.12s,
+          border-color 0.12s;
+        text-align: left;
+      }
+      .btn-task:hover:not(:disabled) {
+        background: #eaf4ff;
+        border-color: #18a0fb;
+      }
+      .btn-task:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      .btn-task .sub {
+        font-size: 10px;
+        font-weight: 400;
+        color: #999;
+        margin-top: 3px;
+      }
+
+      /* ── 전체 생성 버튼 ── */
+      .btn-task--all {
+        width: 100%;
+        background: #18a0fb;
+        color: #fff;
+        border-color: #1290e5;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 8px;
+      }
+      .btn-task--all:hover:not(:disabled) {
+        background: #0d8de6;
+        border-color: #0a7dc9;
+      }
+      .btn-task--all .sub {
+        color: rgba(255, 255, 255, 0.75);
+      }
+
+      /* ── Cancel row ── */
+      .cancel-row {
+        margin-bottom: 12px;
+      }
+
+      #btn-cancel {
+        width: 100%;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 6px;
+        background: #f0f0f0;
+        color: #555;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.12s;
+      }
+      #btn-cancel:hover {
+        background: #e0e0e0;
+      }
+
+      /* ── Log ── */
+      #log {
+        font-size: 10px;
+        color: #aaa;
+        max-height: 72px;
+        overflow-y: auto;
+        border-top: 1px solid #f0f0f0;
+        padding-top: 8px;
+      }
+      #log p {
+        margin: 2px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Boggle Asset Exporter</h2>
+    <p class="desc">
+      'Section' 노드 하나를 선택한 뒤 원하는 작업을 선택하세요.
+    </p>
+
+    <div id="status-box"></div>
+
+    <div class="progress-bar-wrap" id="progress-wrap">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <div class="section-label">작업 선택</div>
+
+    <div class="task-grid">
+      <button class="btn-task" data-task="json">
+        JSON 생성
+        <span class="sub">frame / background options</span>
+      </button>
+      <button class="btn-task" data-task="samples">
+        Sample 이미지
+        <span class="sub">0.5× 썸네일</span>
+      </button>
+      <button class="btn-task" data-task="backgrounds">
+        Background 이미지
+        <span class="sub">1× 배경</span>
+      </button>
+      <button class="btn-task" data-task="overlays">
+        Overlay 이미지
+        <span class="sub">1× 오버레이</span>
+      </button>
+    </div>
+
+    <button class="btn-task btn-task--all" data-task="all">
+      전체 생성
+      <span class="sub">JSON + 모든 이미지</span>
+    </button>
+
+    <div class="cancel-row">
+      <button id="btn-cancel">취소</button>
+    </div>
+
+    <div id="log"></div>
+
+    <!-- JSZip과 UI 로직은 esbuild가 node_modules에서 번들링한 ui.js에 포함됩니다. -->
+    <script src="ui.js"></script>
+  </body>
+</html>
