@@ -1,0 +1,12 @@
+{
+  "name": "Boggle Studio",
+  "id": "boggle-studio",
+  "api": "1.0.0",
+  "main": "dist/boggle-asset-exporter/code.js",
+  "ui": "dist/boggle-asset-exporter/ui.html",
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page",
+  "networkAccess": {
+    "allowedDomains": ["none"]
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "boggle-studio-figma-plugin",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/build.js",
+    "watch": "node scripts/build.js --watch",
+    "build:prod": "NODE_ENV=production node scripts/build.js"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.96.0",
+    "esbuild": "^0.21.0",
+    "typescript": "^5.4.0",
+    "glob": "^10.4.0"
+  },
+  "dependencies": {
+    "jszip": "^3.10.1"
+  }
+}
