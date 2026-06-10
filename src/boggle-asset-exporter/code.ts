@@ -68,7 +68,6 @@ type ImageTaskType = "samples" | "backgrounds" | "overlays";
 
 /** frame-options.json 내 단일 슬롯 항목 */
 interface SlotData {
-  name: string; // 레이어 이름 (slot1, slot2 …)
   x: number; // 'frame' 레이어 좌측 상단 기준 상대 x 좌표
   y: number; // 'frame' 레이어 좌측 상단 기준 상대 y 좌표
   width: number;
@@ -184,7 +183,8 @@ async function parseFrameSection(
       // 각 slot의 절대 좌표에서 원점 좌표를 빼면 'frame' 기준 상대 좌표가 됩니다.
       const slotNodes = findChildrenByNamePrefix(frameLayer, "slot");
 
-      slots = slotNodes
+      slots = [...slotNodes]
+        .sort((a, b) => a.name.localeCompare(b.name))
         .map((slot) => {
           const s = slot as SceneNode & {
             x: number;
@@ -193,14 +193,12 @@ async function parseFrameSection(
             height: number;
           };
           return {
-            name: slot.name,
             x: s.x - originX,
             y: s.y - originY,
             width: s.width,
             height: s.height,
           };
-        })
-        .sort((a, b) => a.name.localeCompare(b.name));
+        });
     }
 
     results[frameId] = {
@@ -367,7 +365,10 @@ async function runAll(
   bgSection: SceneNode & ChildrenMixin,
 ): Promise<void> {
   // ── [1/4] JSON ───────────────────────────────────────────────────────────
-  figma.ui.postMessage({ type: "status", message: "[1/4] JSON 데이터 파싱 중..." });
+  figma.ui.postMessage({
+    type: "status",
+    message: "[1/4] JSON 데이터 파싱 중...",
+  });
   const frameOptions = await parseFrameSection(frameSection);
   const knownFrameIds = Object.keys(frameOptions);
   const backgroundOptions = await parseBackgroundMeta(bgSection, knownFrameIds);
@@ -378,35 +379,53 @@ async function runAll(
   });
 
   // ── [2/4] Samples ────────────────────────────────────────────────────────
-  figma.ui.postMessage({ type: "status", message: "[2/4] 샘플 이미지 추출 중..." });
+  figma.ui.postMessage({
+    type: "status",
+    message: "[2/4] 샘플 이미지 추출 중...",
+  });
   const samples = await extractImages(bgSection, "samples");
   figma.ui.postMessage({
     type: "export-all-part",
     part: "images",
     payload: {
-      images: samples.map((img) => ({ path: img.path, data: Array.from(img.bytes) })),
+      images: samples.map((img) => ({
+        path: img.path,
+        data: Array.from(img.bytes),
+      })),
     },
   });
 
   // ── [3/4] Backgrounds ────────────────────────────────────────────────────
-  figma.ui.postMessage({ type: "status", message: "[3/4] 배경 이미지 추출 중..." });
+  figma.ui.postMessage({
+    type: "status",
+    message: "[3/4] 배경 이미지 추출 중...",
+  });
   const backgrounds = await extractImages(bgSection, "backgrounds");
   figma.ui.postMessage({
     type: "export-all-part",
     part: "images",
     payload: {
-      images: backgrounds.map((img) => ({ path: img.path, data: Array.from(img.bytes) })),
+      images: backgrounds.map((img) => ({
+        path: img.path,
+        data: Array.from(img.bytes),
+      })),
     },
   });
 
   // ── [4/4] Overlays ───────────────────────────────────────────────────────
-  figma.ui.postMessage({ type: "status", message: "[4/4] 오버레이 이미지 추출 중..." });
+  figma.ui.postMessage({
+    type: "status",
+    message: "[4/4] 오버레이 이미지 추출 중...",
+  });
   const overlays = await extractImages(bgSection, "overlays");
   figma.ui.postMessage({
     type: "export-all-part",
     part: "images",
     payload: {
-      images: overlays.map((img) => ({ path: img.path, data: Array.from(img.bytes) })),
+      images: overlays.map((img) => ({
+        path: img.path,
+        data: Array.from(img.bytes),
+      })),
     },
   });
 
@@ -466,7 +485,10 @@ async function run(task: string) {
   try {
     if (task === "json") {
       // JSON 태스크: PNG 추출 없이 레이어 구조만 파싱하므로 매우 빠릅니다.
-      figma.ui.postMessage({ type: "status", message: "FRAME 데이터 파싱 중..." });
+      figma.ui.postMessage({
+        type: "status",
+        message: "FRAME 데이터 파싱 중...",
+      });
       const frameOptions = await parseFrameSection(
         frameSection as SceneNode & ChildrenMixin,
       );
