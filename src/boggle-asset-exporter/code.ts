@@ -318,7 +318,7 @@ async function extractImages(
           const frameGroup = frameIdChild as SceneNode & ChildrenMixin;
 
           if (taskType === "backgrounds") {
-            // background 레이어 → 1× PNG
+            // background 레이어 → 1× PNG + 0.5× preview PNG
             const bgLayer = findChildByName(frameGroup, "background");
             if (bgLayer) {
               const bytes = await exportPng(bgLayer, 1);
@@ -326,15 +326,25 @@ async function extractImages(
                 path: `public/images/backgrounds/${frameId}-${backgroundId}.png`,
                 bytes,
               });
+              const previewBytes = await exportPng(bgLayer, 0.5);
+              images.push({
+                path: `public/images/previews/backgrounds/${frameId}-${backgroundId}.png`,
+                bytes: previewBytes,
+              });
             }
           } else {
-            // overlay 레이어 → 1× PNG (레이어가 존재하는 경우만)
+            // overlay 레이어 → 1× PNG + 0.5× preview PNG (레이어가 존재하는 경우만)
             const overlayLayer = findChildByName(frameGroup, "overlay");
             if (overlayLayer) {
               const bytes = await exportPng(overlayLayer, 1);
               images.push({
                 path: `public/images/overlays/${frameId}-${backgroundId}.png`,
                 bytes,
+              });
+              const previewBytes = await exportPng(overlayLayer, 0.5);
+              images.push({
+                path: `public/images/previews/overlays/${frameId}-${backgroundId}.png`,
+                bytes: previewBytes,
               });
             }
           }
