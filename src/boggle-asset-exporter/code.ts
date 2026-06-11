@@ -174,13 +174,6 @@ async function parseFrameSection(
     let slots: SlotData[] = [];
 
     if (frameLayer && hasChildren(frameLayer)) {
-      const frameLayerWithPos = frameLayer as SceneNode &
-        ChildrenMixin & { x: number; y: number };
-
-      const originX = frameLayerWithPos.x;
-      const originY = frameLayerWithPos.y;
-
-      // 각 slot의 절대 좌표에서 원점 좌표를 빼면 'frame' 기준 상대 좌표가 됩니다.
       const slotNodes = findChildrenByNamePrefix(frameLayer, "slot");
 
       slots = [...slotNodes]
@@ -193,8 +186,8 @@ async function parseFrameSection(
             height: number;
           };
           return {
-            x: s.x - originX,
-            y: s.y - originY,
+            x: s.x,
+            y: s.y,
             width: s.width,
             height: s.height,
           };
